@@ -54,7 +54,21 @@ osThreadId_t receive_taskHandle;
 const osThreadAttr_t receive_task_attributes = {
   .name = "receive_task",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal4,
+  .priority = (osPriority_t) osPriorityBelowNormal,
+};
+/* Definitions for send02 */
+osThreadId_t send02Handle;
+const osThreadAttr_t send02_attributes = {
+  .name = "send02",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal3,
+};
+/* Definitions for receive02 */
+osThreadId_t receive02Handle;
+const osThreadAttr_t receive02_attributes = {
+  .name = "receive02",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal,
 };
 /* Definitions for queue01 */
 osMessageQueueId_t queue01Handle;
@@ -77,6 +91,8 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 void StartDefaultTask(void *argument);
 void StartTask02(void *argument);
+void StartTask03(void *argument);
+void StartTask04(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -149,6 +165,12 @@ int main(void)
 
   /* creation of receive_task */
   receive_taskHandle = osThreadNew(StartTask02, NULL, &receive_task_attributes);
+
+  /* creation of send02 */
+  send02Handle = osThreadNew(StartTask03, NULL, &send02_attributes);
+
+  /* creation of receive02 */
+  receive02Handle = osThreadNew(StartTask04, NULL, &receive02_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -296,6 +318,51 @@ void StartTask02(void *argument)
       osDelay(1000);
   }
   /* USER CODE END StartTask02 */
+}
+
+/* USER CODE BEGIN Header_StartTask03 */
+/**
+* @brief Function implementing the send02 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask03 */
+void StartTask03(void *argument)
+{
+  /* USER CODE BEGIN StartTask03 */
+  /* Infinite loop */
+	uint16_t value = 1;
+  for(;;)
+  {
+	  printf("Send Task is Active\r\n");
+	 	  osMessageQueuePut(queue01Handle, &value, 0, 200);
+	 	  value = value + 1 ;
+	       osDelay(1000);
+
+  }
+  /* USER CODE END StartTask03 */
+}
+
+/* USER CODE BEGIN Header_StartTask04 */
+/**
+* @brief Function implementing the receive02 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask04 */
+void StartTask04(void *argument)
+{
+  /* USER CODE BEGIN StartTask04 */
+  /* Infinite loop */
+	uint16_t rx_data;
+	  for(;;)
+	  {
+		  printf("Receive Task is Active\r\n");
+		  osMessageQueueGet(queue01Handle, &rx_data, 0, 200);
+		  printf("DATA Received: %d \r\n",rx_data);
+	      osDelay(1000);
+	  }
+  /* USER CODE END StartTask04 */
 }
 
 /**
